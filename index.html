@@ -1,0 +1,649 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Tableau mural</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap">
+<style>
+/* Concept : une seule page. Sur le téléphone c'est la télécommande (réglages en liste).
+   Sur la tablette c'est le tableau mural plein écran, lisible de loin, qui suit les réglages. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --fg:#14202b; --muted:#5d6b77; --line:#d5dbe1;
+  --accent:#1f6b8e; --accent-fg:#ffffff;
+  --good:#2f7d4f; --warn:#9a5a00; --danger:#b3392f;
+  --night-bg:#000000; --night-fg:#4a5661;
+  --font-display:"Space Grotesk","Helvetica Neue",Arial,sans-serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1317; --surface:#161d23; --fg:#e8eef2; --muted:#8d9ba6; --line:#26303a;
+    --accent:#7cc3e2; --accent-fg:#0b1a22; --good:#6fcf97; --warn:#f2b35a; --danger:#f0877d;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1317; --surface:#161d23; --fg:#e8eef2; --muted:#8d9ba6; --line:#26303a;
+  --accent:#7cc3e2; --accent-fg:#0b1a22; --good:#6fcf97; --warn:#f2b35a; --danger:#f0877d;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--font-body); line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-text-size-adjust:100%;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- Télécommande ---------- */
+.ctl{max-width:560px;margin:0 auto;padding-block:20px 100px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+h1{font-family:var(--font-display);font-size:26px;font-weight:600;letter-spacing:-.01em;margin:0}
+.chip{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip[data-s="sync"]{color:var(--good);border-color:var(--good)}
+.chip[data-s="slow"],.chip[data-s="conn"]{color:var(--warn);border-color:var(--warn)}
+.chip[data-s="ro"],.chip[data-s="err"]{color:var(--danger);border-color:var(--danger)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+h2{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px}
+.hint{font-size:13px;color:var(--muted);margin:10px 0 0}
+.field{width:100%;font-size:16px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);min-width:0}
+.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:600;background:var(--accent);color:var(--accent-fg);cursor:pointer;min-height:44px}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.add{display:flex;gap:8px;margin-bottom:6px}
+.tasks-list{list-style:none;margin:8px 0 0;padding:0}
+.tasks-list li{display:flex;align-items:center;gap:12px;min-height:48px;border-top:1px solid var(--line)}
+.tasks-list li:first-child{border-top:0}
+.tasks-list input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none}
+.tasks-list .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.tasks-list .done .t{color:var(--muted);text-decoration:line-through}
+.x{background:transparent;border:0;color:var(--muted);width:44px;height:44px;display:grid;place-items:center;cursor:pointer;flex:none}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px}
+.row+.row{border-top:1px solid var(--line)}
+.sw{-webkit-appearance:none;appearance:none;width:46px;height:28px;border-radius:999px;background:var(--line);position:relative;flex:none;border:0;cursor:pointer;margin:0;transition:background .15s}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw:checked{background:var(--accent)}
+.sw:checked::after{transform:translateX(18px)}
+.seg{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg label{position:relative;flex:1;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.seg span{display:block;text-align:center;padding:9px 6px;border-radius:8px;font-size:14px;color:var(--muted)}
+.seg input:checked+span{background:var(--accent);color:var(--accent-fg);font-weight:600}
+.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.label{display:block;font-size:14px;margin:14px 0 6px}
+.label:first-of-type{margin-top:0}
+.pair{display:flex;gap:10px}
+.pair>*{flex:1;min-width:0}
+details summary{cursor:pointer;font-size:14px;color:var(--accent);margin-top:12px}
+
+/* Bouton réglages de l'appareil */
+.gear{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);z-index:30;display:grid;place-items:center;cursor:pointer}
+.gear svg{width:22px;height:22px}
+body.mode-wall .gear{opacity:.22}
+.sheet{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5)}
+.panel{width:100%;max-width:520px;background:var(--surface);color:var(--fg);border-radius:18px 18px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.panel h2{margin-bottom:14px}
+.pick{display:block;width:100%;text-align:left;padding:14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--fg);margin-bottom:10px;cursor:pointer}
+.pick[aria-pressed="true"]{border-color:var(--accent)}
+.pick b{display:block;font-family:var(--font-display);font-size:18px;font-weight:600}
+.pick span{color:var(--muted);font-size:14px}
+
+/* ---------- Tableau mural ---------- */
+.stage{position:fixed;left:0;top:0;overflow:hidden;background:var(--bg);color:var(--fg);padding:5vmin;z-index:5}
+.cols{display:grid;gap:5vmin;height:100%;align-content:start}
+.land .cols{grid-template-columns:1fr 1fr}
+.land .cols.one,.port .cols{grid-template-columns:1fr}
+.port .cols{grid-auto-rows:min-content}
+.col{display:flex;flex-direction:column;gap:5vmin;min-width:0;min-height:0}
+.time{font-family:var(--font-display);font-weight:500;font-size:23vmin;line-height:.95;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.date{font-size:4.4vmin;color:var(--muted);margin-top:1.5vmin}
+.muted{color:var(--muted)}
+.wx-now{display:flex;align-items:center;gap:3vmin}
+.wx-now svg{width:13vmin;height:13vmin;color:var(--accent);flex:none}
+.wx-temp{font-family:var(--font-display);font-size:12vmin;font-weight:500;line-height:1}
+.wx-label{font-size:3.6vmin;color:var(--muted)}
+.wx-days{display:flex;gap:4vmin;margin-top:3vmin}
+.wx-day{text-align:center;font-size:3vmin;color:var(--muted)}
+.wx-day svg{width:8vmin;height:8vmin;color:var(--accent);display:block;margin:.5vmin auto}
+.wx-day b{display:block;color:var(--fg);font-weight:500;font-size:3.2vmin}
+.wx-old{font-size:2.6vmin;color:var(--muted);margin-top:2vmin}
+.msg{font-family:var(--font-display);font-size:5.2vmin;line-height:1.25;font-weight:500;overflow-wrap:anywhere}
+.tasks h3{font-size:2.6vmin;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 1.5vmin;font-weight:600}
+.tasks ul{list-style:none;margin:0;padding:0}
+.tasks li{display:flex;gap:2vmin;align-items:center;font-size:4.2vmin;padding:1.3vmin 0;border-top:1px solid var(--line)}
+.tasks li svg{width:4.6vmin;height:4.6vmin;flex:none;color:var(--accent)}
+.tasks li.done{color:var(--muted);text-decoration:line-through}
+.tasks li.more{color:var(--muted);font-size:3.2vmin;text-decoration:none}
+.nightclock{display:none}
+.stage.night{background:var(--night-bg);color:var(--night-fg)}
+.stage.night .cols{display:none}
+.stage.night .nightclock{display:grid;place-items:center;height:100%;font-family:var(--font-display);font-size:16vmin;color:var(--night-fg);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion: reduce){.sw,.sw::after{transition:none}}
+</style>
+
+<main class="ctl" id="ctl">
+  <div class="top">
+    <h1>Tableau mural</h1>
+    <span class="chip" id="chip" data-s="local">Mode local</span>
+  </div>
+
+  <section class="card">
+    <h2>Message du jour</h2>
+    <input class="field" id="msg" type="text" maxlength="140" placeholder="Une phrase à afficher sur le tableau" autocomplete="off">
+  </section>
+
+  <section class="card">
+    <h2>Tâches</h2>
+    <form class="add" id="addForm">
+      <input class="field" id="newTask" type="text" maxlength="120" placeholder="Nouvelle tâche" autocomplete="off" aria-label="Nouvelle tâche">
+      <button class="btn" type="submit">Ajouter</button>
+    </form>
+    <ul class="tasks-list" id="taskList"></ul>
+    <p class="hint" id="taskEmpty" hidden>Aucune tâche. Ajoute-en une, elle apparaît sur le tableau.</p>
+    <button class="btn ghost" id="clearDone" type="button" hidden style="margin-top:10px">Retirer les terminées</button>
+  </section>
+
+  <section class="card">
+    <h2>Widgets affichés</h2>
+    <label class="row" for="sw-clock"><span>Heure et date</span><input class="sw" type="checkbox" id="sw-clock"></label>
+    <label class="row" for="sw-weather"><span>Météo</span><input class="sw" type="checkbox" id="sw-weather"></label>
+    <label class="row" for="sw-message"><span>Message du jour</span><input class="sw" type="checkbox" id="sw-message"></label>
+    <label class="row" for="sw-tasks"><span>Tâches</span><input class="sw" type="checkbox" id="sw-tasks"></label>
+  </section>
+
+  <section class="card">
+    <h2>Affichage de la tablette</h2>
+    <span class="label" id="lblOrient">Orientation</span>
+    <div class="seg" role="radiogroup" aria-labelledby="lblOrient">
+      <label><input type="radio" name="orient" value="auto"><span>Auto</span></label>
+      <label><input type="radio" name="orient" value="landscape"><span>Paysage</span></label>
+      <label><input type="radio" name="orient" value="portrait"><span>Portrait</span></label>
+    </div>
+    <label class="row" for="sw-flip" id="flipRow" style="margin-top:6px"><span>Pivoter dans l'autre sens</span><input class="sw" type="checkbox" id="sw-flip"></label>
+    <p class="hint">Paysage ou Portrait pivote l'affichage, même si la tablette est posée dans l'autre sens.</p>
+    <span class="label" id="lblTheme">Thème</span>
+    <div class="seg" role="radiogroup" aria-labelledby="lblTheme">
+      <label><input type="radio" name="theme" value="auto"><span>Auto</span></label>
+      <label><input type="radio" name="theme" value="light"><span>Clair</span></label>
+      <label><input type="radio" name="theme" value="dark"><span>Sombre</span></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Mode nuit</h2>
+    <label class="row" for="sw-night"><span>Écran noir avec l'heure seule</span><input class="sw" type="checkbox" id="sw-night"></label>
+    <div class="pair" style="margin-top:10px">
+      <div><label class="label" for="nightFrom" style="margin-top:0">De</label><select class="field" id="nightFrom"></select></div>
+      <div><label class="label" for="nightTo" style="margin-top:0">À</label><select class="field" id="nightTo"></select></div>
+    </div>
+    <p class="hint">Ménage l'écran fatigué de la tablette pendant la nuit.</p>
+  </section>
+
+  <section class="card">
+    <h2>Météo</h2>
+    <label class="label" for="city" style="margin-top:0">Ville</label>
+    <input class="field" id="city" type="text" maxlength="60" autocomplete="off">
+    <p class="hint" id="wxInfo"></p>
+    <details>
+      <summary>Coordonnées</summary>
+      <div class="pair" style="margin-top:10px">
+        <div><label class="label" for="lat" style="margin-top:0">Latitude</label><input class="field" id="lat" type="number" step="any" inputmode="decimal"></div>
+        <div><label class="label" for="lon" style="margin-top:0">Longitude</label><input class="field" id="lon" type="number" step="any" inputmode="decimal"></div>
+      </div>
+    </details>
+  </section>
+</main>
+
+<div class="stage" id="stage" hidden>
+  <div class="cols" id="cols">
+    <section class="col" id="colA">
+      <div id="wClock"><div class="time" id="time">--:--</div><div class="date" id="date"></div></div>
+      <div id="wWx"></div>
+    </section>
+    <section class="col" id="colB">
+      <div class="msg" id="wMsg"></div>
+      <div class="tasks" id="wTasks"></div>
+    </section>
+  </div>
+  <div class="nightclock" id="nightClock" aria-hidden="true"></div>
+</div>
+
+<button class="gear" id="gear" type="button" aria-label="Réglages de l'appareil">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+</button>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle">Cet appareil sert de</h2>
+    <button class="pick" id="pickCtl" type="button" aria-pressed="false"><b>Contrôleur</b><span>Règle tout l'affichage depuis ce téléphone.</span></button>
+    <button class="pick" id="pickWall" type="button" aria-pressed="false"><b>Tableau mural</b><span>Affiche tout en grand et suit les réglages du contrôleur.</span></button>
+    <button class="btn ghost" id="closeSheet" type="button" style="width:100%">Fermer</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function isObj(v){return v&&typeof v==='object'&&!Array.isArray(v)}
+function merge(base,over){
+  var o=clone(base);
+  if(!over)return o;
+  for(var k in over){
+    if(isObj(over[k])&&isObj(o[k]))o[k]=merge(o[k],over[k]);
+    else o[k]=over[k];
+  }
+  return o;
+}
+function pad(n){return n<10?'0'+n:''+n}
+function h(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+
+var DEFAULT={
+  widgets:{clock:true,weather:true,message:true,tasks:true},
+  message:'',theme:'dark',orientation:'auto',flip:false,
+  night:{on:true,from:23,to:6},
+  city:'Draguignan',lat:43.5333,lon:6.4667,
+  tasks:[]
+};
+var cfg=clone(DEFAULT);
+(function(){var c=lsGet('cfg');if(c){try{cfg=merge(DEFAULT,JSON.parse(c))}catch(e){}}})();
+var wxDb=null,wxLive=null;
+(function(){var c=lsGet('wx');if(c){try{wxDb=JSON.parse(c)}catch(e){}}})();
+
+/* ---------- Mode de l'appareil ---------- */
+var mode='controller';
+var modeKnown=false;
+function readMode(){
+  var hs=location.hash;
+  if(hs==='#tableau'){lsSet('mode','wall');modeKnown=true;return 'wall'}
+  if(hs==='#controleur'){lsSet('mode','controller');modeKnown=true;return 'controller'}
+  var m=lsGet('mode');
+  modeKnown=(m==='wall'||m==='controller');
+  return m==='wall'?'wall':'controller';
+}
+function setMode(m){
+  mode=m;modeKnown=true;lsSet('mode',m);
+  try{location.hash=(m==='wall'?'tableau':'controleur')}catch(e){}
+  applyMode();
+  if(m==='wall')liveWeather();
+}
+
+/* ---------- Statut de synchro ---------- */
+var STATUS={sync:'Synchronisé',local:'Mode local',conn:'Connexion…',slow:'Synchro en attente',ro:'Lecture seule',err:"Échec de l'enregistrement"};
+var status='local';
+function setStatus(s){status=s;var c=$('chip');c.textContent=STATUS[s];c.setAttribute('data-s',s)}
+
+/* ---------- Enregistrement Supabase ---------- */
+var supabaseClient=null, userId=null, dirty=false, saving=false, saveTimer=null, realtimeChannel=null;
+var SUPABASE_URL='https://rzzhchimzbyasfdtzckh.supabase.co';
+var SUPABASE_KEY='sb_publishable_p48xaXBskYa7kQo2KhpSmQ_U3SM2BAS';
+function scheduleCloudSave(){
+  if(!supabaseClient||!userId)return;
+  dirty=true;clearTimeout(saveTimer);saveTimer=setTimeout(flush,500);
+}
+function save(){
+  lsSet('cfg',JSON.stringify(cfg));
+  scheduleCloudSave();
+}
+function change(fn){
+  fn(cfg);
+  save();
+  renderAll();
+}
+function flush(){
+  if(saving){saveTimer=setTimeout(flush,300);return}
+  if(!dirty||!supabaseClient||!userId)return;
+  dirty=false;saving=true;
+  var payload={cfg:clone(cfg),wx:wxDb?clone(wxDb):null};
+  supabaseClient.from('tableau').upsert({id:userId,data:payload,updated_at:new Date().toISOString()},{onConflict:'id'})
+    .then(function(result){
+      if(result.error)throw result.error;
+      setStatus('sync');
+    }).catch(function(e){
+      console.error('Supabase save:',e);setStatus('err');
+    }).then(function(){saving=false;if(dirty&&supabaseClient&&userId)saveTimer=setTimeout(flush,700)});
+}
+function applyRemote(data){
+  if(!data||dirty||saving)return;
+  if(data.cfg){cfg=merge(DEFAULT,data.cfg);lsSet('cfg',JSON.stringify(cfg));renderAll()}
+  if(data.wx){wxDb=clone(data.wx);lsSet('wx',JSON.stringify(wxDb));renderWx();renderWxInfo()}
+}
+function watchRemote(){
+  if(!supabaseClient||!userId)return;
+  if(realtimeChannel)supabaseClient.removeChannel(realtimeChannel);
+  realtimeChannel=supabaseClient.channel('tableau-'+userId)
+    .on('postgres_changes',{event:'*',schema:'public',table:'tableau',filter:'id=eq.'+userId},function(payload){
+      if(payload.new&&payload.new.data)applyRemote(payload.new.data);
+    }).subscribe(function(state){if(state==='SUBSCRIBED')setStatus('sync');else if(state==='CHANNEL_ERROR'||state==='TIMED_OUT')setStatus('err')});
+}
+function initDb(){
+  if(!window.supabase||!window.supabase.createClient){setStatus('err');return}
+  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  setStatus('conn');
+  supabaseClient.auth.getSession().then(function(result){
+    if(result.error)throw result.error;
+    var session=result.data.session;
+    if(session){startUserSession(session.user);return}
+    var email=window.prompt('Adresse e-mail du compte partagé Supabase :');
+    if(!email){setStatus('local');return}
+    var password=window.prompt('Mot de passe de ce compte Supabase :');
+    if(!password){setStatus('local');return}
+    return supabaseClient.auth.signInWithPassword({email:email.trim(),password:password}).then(function(login){
+      if(login.error)throw login.error;
+      startUserSession(login.data.user);
+    });
+  }).catch(function(e){console.error('Supabase auth:',e);setStatus('err');window.alert('Connexion Supabase impossible. Vérifie le compte et les réglages Auth.')});
+}
+function startUserSession(user){
+  userId=user.id;
+  supabaseClient.from('tableau').select('data').eq('id',userId).maybeSingle().then(function(result){
+    if(result.error)throw result.error;
+    if(result.data&&result.data.data)applyRemote(result.data.data);
+    else{dirty=true;flush()}
+    watchRemote();
+  }).catch(function(e){console.error('Supabase load:',e);setStatus('err')});
+}
+
+/* ---------- Météo ---------- */
+var WXNAMES={0:['Ciel dégagé','clear'],1:['Peu nuageux','partly'],2:['Éclaircies','partly'],3:['Couvert','cloud'],45:['Brouillard','fog'],48:['Brouillard','fog']};
+function wxInfo(c){
+  if(WXNAMES[c])return WXNAMES[c];
+  if(c>=51&&c<=57)return ['Bruine','rain'];
+  if(c>=61&&c<=67)return ['Pluie','rain'];
+  if(c>=71&&c<=77)return ['Neige','snow'];
+  if(c>=80&&c<=82)return ['Averses','rain'];
+  if(c===85||c===86)return ['Averses de neige','snow'];
+  if(c>=95)return ['Orage','storm'];
+  return ['Variable','cloud'];
+}
+var CLOUD='<path d="M14 36h19a7 7 0 0 0 .6-14A10 10 0 0 0 14.5 20 8 8 0 0 0 14 36z"/>';
+function icon(kind){
+  var s='<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+  if(kind==='clear')s+='<circle cx="24" cy="24" r="8"/><path d="M24 6v4M24 38v4M6 24h4M38 24h4M11.3 11.3l2.8 2.8M33.9 33.9l2.8 2.8M11.3 36.7l2.8-2.8M33.9 14.1l2.8-2.8"/>';
+  else if(kind==='partly')s+='<circle cx="17" cy="15" r="6"/><path d="M17 4v2M6 15h2M9.2 7.2l1.4 1.4M24.8 7.2l-1.4 1.4"/><g transform="translate(2,2)">'+CLOUD+'</g>';
+  else if(kind==='cloud')s+=CLOUD;
+  else if(kind==='rain')s+='<g transform="translate(0,-4)">'+CLOUD+'</g><path d="M17 40l-2 4M25 40l-2 4M33 40l-2 4"/>';
+  else if(kind==='snow')s+='<g transform="translate(0,-4)">'+CLOUD+'</g><path d="M17 41h.01M25 44h.01M33 41h.01" stroke-width="4"/>';
+  else if(kind==='storm')s+='<g transform="translate(0,-4)">'+CLOUD+'</g><path d="M26 32l-5 7h6l-4 7"/>';
+  else s+='<path d="M8 16h32M12 24h24M8 32h32"/>';
+  return s+'</svg>';
+}
+function curWx(){return wxLive||wxDb}
+function liveWeather(){
+  if(!window.fetch||mode!=='wall')return;
+  var ctl=window.AbortController?new AbortController():null;
+  var t=setTimeout(function(){if(ctl)ctl.abort()},8000);
+  var url='https://api.open-meteo.com/v1/forecast?latitude='+encodeURIComponent(cfg.lat)+'&longitude='+encodeURIComponent(cfg.lon)+'&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=4';
+  fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){if(!r.ok)throw new Error('http');return r.json()}).then(function(j){
+    clearTimeout(t);
+    var d=j.daily;
+    wxLive={updatedAt:new Date().toISOString(),city:cfg.city,
+      current:{temp:Math.round(j.current.temperature_2m),code:j.current.weather_code,wind:Math.round(j.current.wind_speed_10m),humidity:j.current.relative_humidity_2m},
+      daily:d.time.map(function(day,i){return {date:day,code:d.weather_code[i],tmax:Math.round(d.temperature_2m_max[i]),tmin:Math.round(d.temperature_2m_min[i]),rain:d.precipitation_probability_max[i]}})};
+    lsSet('wx',JSON.stringify(wxLive));wxDb=clone(wxLive);renderWx();scheduleCloudSave();
+  }).catch(function(){clearTimeout(t)});
+}
+function ago(iso){
+  var ms=Date.now()-new Date(iso).getTime();
+  if(isNaN(ms))return '';
+  var m=Math.round(ms/60000);
+  if(m<2)return "à l'instant";
+  if(m<60)return 'il y a '+m+' min';
+  var hrs=Math.round(m/60);
+  if(hrs<48)return 'il y a '+hrs+' h';
+  return 'il y a '+Math.round(hrs/24)+' j';
+}
+function renderWx(){
+  var el=$('wWx');el.textContent='';
+  if(!cfg.widgets.weather)return;
+  var w=curWx();
+  if(!w||!w.current){
+    el.appendChild(h('p','muted',"Pas encore de météo. Elle s'affichera ici après la première mise à jour."));
+    el.firstChild.style.fontSize='3.4vmin';
+    return;
+  }
+  var info=wxInfo(w.current.code);
+  var now=h('div','wx-now');
+  var ic=h('div');ic.innerHTML=icon(info[1]);ic.style.flex='none';
+  var tx=h('div');
+  tx.appendChild(h('div','wx-temp',w.current.temp+'°'));
+  tx.appendChild(h('div','wx-label',info[0]+(w.city?' · '+w.city:'')));
+  now.appendChild(ic.firstChild);now.appendChild(tx);
+  el.appendChild(now);
+  if(w.daily&&w.daily.length>1){
+    var days=h('div','wx-days');
+    for(var i=1;i<w.daily.length&&i<4;i++){
+      var d=w.daily[i],di=wxInfo(d.code);
+      var c=h('div','wx-day');
+      var lab=new Date(d.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short'});
+      c.appendChild(h('span',null,lab.replace('.','')));
+      var s=h('span');s.innerHTML=icon(di[1]);c.appendChild(s.firstChild);
+      c.appendChild(h('b',null,d.tmax+'° / '+d.tmin+'°'));
+      days.appendChild(c);
+    }
+    el.appendChild(days);
+  }
+  if(!wxLive&&w.updatedAt&&Date.now()-new Date(w.updatedAt).getTime()>12*3600*1000){
+    el.appendChild(h('div','wx-old','Météo reçue '+ago(w.updatedAt)));
+  }
+}
+function renderWxInfo(){
+  var w=curWx(),p=$('wxInfo');
+  if(w&&w.updatedAt)p.textContent='Dernière météo reçue '+ago(w.updatedAt)+(w.city?' ('+w.city+')':'')+'.';
+  else p.textContent="Aucune météo reçue pour l'instant.";
+}
+
+/* ---------- Tableau mural ---------- */
+var stage=$('stage'),lastT='';
+function isNight(hr){
+  var n=cfg.night;
+  if(!n||!n.on)return false;
+  var f=+n.from,t=+n.to;
+  if(f===t)return false;
+  return f>t?(hr>=f||hr<t):(hr>=f&&hr<t);
+}
+function tick(){
+  var d=new Date(),t=pad(d.getHours())+':'+pad(d.getMinutes());
+  if(t!==lastT){
+    lastT=t;
+    $('time').textContent=t;$('nightClock').textContent=t;
+    var ds=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+    $('date').textContent=ds.charAt(0).toUpperCase()+ds.slice(1);
+  }
+  var n=isNight(d.getHours());
+  if(stage.classList.contains('night')!==n)stage.classList.toggle('night',n);
+}
+function layout(){
+  var W=window.innerWidth,H=window.innerHeight,devLand=W>=H;
+  var want=cfg.orientation==='auto'?(devLand?'landscape':'portrait'):cfg.orientation;
+  var rot=(want==='landscape')!==devLand;
+  var st=stage.style;
+  if(!rot){st.width=W+'px';st.height=H+'px';st.transform='none'}
+  else{
+    st.width=H+'px';st.height=W+'px';st.transformOrigin='0 0';
+    st.transform=cfg.flip?'translate(0,'+H+'px) rotate(-90deg)':'translate('+W+'px,0) rotate(90deg)';
+  }
+  var cls='stage '+(want==='landscape'?'land':'port');
+  if(stage.classList.contains('night'))cls+=' night';
+  stage.className=cls;
+}
+function circle(done){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/>'+(done?'<path d="M8 12.5l2.7 2.7L16 9.5"/>':'')+'</svg>';
+}
+function renderTasksWall(){
+  var el=$('wTasks');el.textContent='';
+  if(!cfg.widgets.tasks)return;
+  var open=cfg.tasks.filter(function(t){return !t.done}),done=cfg.tasks.filter(function(t){return t.done});
+  el.appendChild(h('h3',null,'À faire'+(open.length?' · '+open.length:'')));
+  if(!cfg.tasks.length){el.appendChild(h('p','muted','Rien à faire pour le moment.'));el.lastChild.style.fontSize='3.6vmin';return}
+  var all=open.concat(done),shown=all.slice(0,7),ul=h('ul');
+  shown.forEach(function(t){
+    var li=h('li',t.done?'done':'');
+    var s=h('span');s.innerHTML=circle(t.done);li.appendChild(s.firstChild);
+    li.appendChild(h('span',null,t.text));
+    ul.appendChild(li);
+  });
+  if(all.length>shown.length)ul.appendChild(h('li','more','+ '+(all.length-shown.length)+' autres'));
+  el.appendChild(ul);
+}
+function renderWall(){
+  var wd=cfg.widgets;
+  $('wClock').hidden=!wd.clock;
+  $('wWx').hidden=!wd.weather;
+  var msg=(cfg.message||'').trim(),showMsg=wd.message&&msg;
+  $('wMsg').hidden=!showMsg;$('wMsg').textContent=showMsg?msg:'';
+  $('wTasks').hidden=!wd.tasks;
+  var a=wd.clock||wd.weather,b=showMsg||wd.tasks;
+  $('colA').hidden=!a;$('colB').hidden=!b;
+  $('cols').className='cols'+((a&&b)?'':' one');
+  renderWx();renderTasksWall();layout();tick();
+}
+
+/* ---------- Télécommande ---------- */
+function setVal(el,v){if(document.activeElement!==el)el.value=v}
+function renderTasksCtl(){
+  var ul=$('taskList');ul.textContent='';
+  cfg.tasks.forEach(function(t){
+    var li=h('li',t.done?'done':'');
+    var cb=h('input');cb.type='checkbox';cb.checked=!!t.done;cb.setAttribute('data-id',t.id);cb.setAttribute('aria-label','Terminée : '+t.text);
+    li.appendChild(cb);
+    li.appendChild(h('span','t',t.text));
+    var x=h('button','x');x.type='button';x.setAttribute('data-del',t.id);x.setAttribute('aria-label','Supprimer : '+t.text);
+    x.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    li.appendChild(x);ul.appendChild(li);
+  });
+  $('taskEmpty').hidden=cfg.tasks.length>0;
+  $('clearDone').hidden=!cfg.tasks.some(function(t){return t.done});
+}
+function setRadio(name,v){
+  var r=document.getElementsByName(name);
+  for(var i=0;i<r.length;i++)r[i].checked=(r[i].value===v);
+}
+function renderCtl(){
+  setVal($('msg'),cfg.message||'');
+  renderTasksCtl();
+  $('sw-clock').checked=!!cfg.widgets.clock;
+  $('sw-weather').checked=!!cfg.widgets.weather;
+  $('sw-message').checked=!!cfg.widgets.message;
+  $('sw-tasks').checked=!!cfg.widgets.tasks;
+  setRadio('orient',cfg.orientation);
+  setRadio('theme',cfg.theme);
+  $('sw-flip').checked=!!cfg.flip;
+  $('flipRow').hidden=cfg.orientation==='auto';
+  $('sw-night').checked=!!cfg.night.on;
+  $('nightFrom').value=String(cfg.night.from);
+  $('nightTo').value=String(cfg.night.to);
+  setVal($('city'),cfg.city||'');
+  setVal($('lat'),cfg.lat);setVal($('lon'),cfg.lon);
+  renderWxInfo();
+}
+function applyTheme(){
+  var root=document.documentElement;
+  if(mode==='wall'&&cfg.theme!=='auto')root.setAttribute('data-theme',cfg.theme);
+  else root.removeAttribute('data-theme');
+}
+function applyMode(){
+  document.body.className='mode-'+mode;
+  $('ctl').hidden=(mode==='wall');
+  stage.hidden=(mode!=='wall');
+  applyTheme();
+  renderAll();
+  wakeLock();
+}
+function renderAll(){
+  applyTheme();
+  if(mode==='wall')renderWall();else renderCtl();
+  $('pickCtl').setAttribute('aria-pressed',String(mode==='controller'&&modeKnown));
+  $('pickWall').setAttribute('aria-pressed',String(mode==='wall'));
+}
+
+/* ---------- Événements ---------- */
+function newId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+$('addForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var inp=$('newTask'),v=inp.value.trim();
+  if(!v)return;
+  inp.value='';
+  change(function(c){c.tasks.push({id:newId(),text:v.slice(0,120),done:false})});
+});
+$('taskList').addEventListener('change',function(e){
+  var id=e.target.getAttribute('data-id');
+  if(!id)return;
+  var on=e.target.checked;
+  change(function(c){c.tasks.forEach(function(t){if(t.id===id)t.done=on})});
+});
+$('taskList').addEventListener('click',function(e){
+  var b=e.target.closest?e.target.closest('[data-del]'):null;
+  if(!b)return;
+  var id=b.getAttribute('data-del');
+  change(function(c){c.tasks=c.tasks.filter(function(t){return t.id!==id})});
+});
+$('clearDone').addEventListener('click',function(){
+  change(function(c){c.tasks=c.tasks.filter(function(t){return !t.done})});
+});
+$('msg').addEventListener('input',function(e){cfg.message=e.target.value;save()});
+['clock','weather','message','tasks'].forEach(function(k){
+  $('sw-'+k).addEventListener('change',function(e){var on=e.target.checked;change(function(c){c.widgets[k]=on})});
+});
+Array.prototype.forEach.call(document.getElementsByName('orient'),function(r){
+  r.addEventListener('change',function(e){var v=e.target.value;change(function(c){c.orientation=v})});
+});
+Array.prototype.forEach.call(document.getElementsByName('theme'),function(r){
+  r.addEventListener('change',function(e){var v=e.target.value;change(function(c){c.theme=v})});
+});
+$('sw-flip').addEventListener('change',function(e){var on=e.target.checked;change(function(c){c.flip=on})});
+$('sw-night').addEventListener('change',function(e){var on=e.target.checked;change(function(c){c.night.on=on})});
+(function(){
+  var f=$('nightFrom'),t=$('nightTo');
+  for(var i=0;i<24;i++){
+    var o1=h('option',null,pad(i)+' h');o1.value=String(i);f.appendChild(o1);
+    var o2=h('option',null,pad(i)+' h');o2.value=String(i);t.appendChild(o2);
+  }
+  f.addEventListener('change',function(e){var v=+e.target.value;change(function(c){c.night.from=v})});
+  t.addEventListener('change',function(e){var v=+e.target.value;change(function(c){c.night.to=v})});
+})();
+$('city').addEventListener('input',function(e){cfg.city=e.target.value;save()});
+$('lat').addEventListener('input',function(e){var v=parseFloat(e.target.value);if(!isNaN(v)){cfg.lat=v;save()}});
+$('lon').addEventListener('input',function(e){var v=parseFloat(e.target.value);if(!isNaN(v)){cfg.lon=v;save()}});
+
+function openSheet(){$('sheet').hidden=false;$('pickCtl').focus()}
+function closeSheet(){$('sheet').hidden=true}
+$('gear').addEventListener('click',openSheet);
+$('closeSheet').addEventListener('click',closeSheet);
+$('sheet').addEventListener('click',function(e){if(e.target===$('sheet'))closeSheet()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeSheet()});
+$('pickCtl').addEventListener('click',function(){setMode('controller');closeSheet()});
+$('pickWall').addEventListener('click',function(){setMode('wall');closeSheet()});
+window.addEventListener('resize',function(){if(mode==='wall')layout()});
+window.addEventListener('orientationchange',function(){setTimeout(function(){if(mode==='wall')layout()},200)});
+window.addEventListener('hashchange',function(){var m=readMode();if(m!==mode){mode=m;applyMode();if(m==='wall')liveWeather()}});
+
+var wl=null;
+function wakeLock(){
+  try{
+    if(mode==='wall'&&navigator.wakeLock&&!wl){
+      navigator.wakeLock.request('screen').then(function(l){wl=l;l.addEventListener('release',function(){wl=null})}).catch(function(){});
+    }
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',function(){if(!document.hidden)wakeLock()});
+
+/* ---------- Démarrage ---------- */
+mode=readMode();
+applyMode();
+if(!modeKnown)openSheet();
+initDb();
+setInterval(tick,1000);
+setInterval(function(){if(mode==='wall')renderWall()},60000);
+if(mode==='wall')liveWeather();
+setInterval(function(){liveWeather()},20*60*1000);
+})();
+</script>
+
+</body></html>
